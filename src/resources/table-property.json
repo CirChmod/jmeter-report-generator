@@ -1,0 +1,11 @@
+{
+  "title": "table1",
+  "dataSrcPath": "./results.csv",
+  "firstRowLabels": ["10", "20", "40", "60", "80", "100"],
+  "firstColLabels": ["Original", "With Cache"],
+  "groupBy": "Label",
+  "factor": "Latency",
+  "formula": "AVG",
+  "bolder": 1
+}
+

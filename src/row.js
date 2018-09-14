@@ -1,15 +1,17 @@
 
 module.exports = class Row {
-  constructor(values) {
-    this.values_ = [];
-    if (values !== null) {
-      values.forEach(v => {
-        this.values_.push(v);
+  constructor(cells, format) {
+    this.cells_ = [];
+    if (cells !== null) {
+      cells.forEach(v => {
+        this.cells_.push(v);
       });
     }
+    this.format_ = Object.assign({}, format) || {};
+
   }
 
-  get values() {
-    return this.values_;
+  get contents() {
+    return this.cells_;
   }
 }
