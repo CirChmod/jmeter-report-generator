@@ -85,9 +85,15 @@ function loadSrcData(path, callback) {
   let data = [];
   fs.readAllFiles(path, 'csv', files => {
     files.forEach(file => {
-      let tmp = file.toString().split('\n').map(row => row.split(','));
+      let fileData = file.toString().split('\n');
+      fileData.pop();
+      let tmp = fileData.map(row => row.split(','));
+      console.log(tmp.length);
       let keys = tmp[0];
       tmp.forEach((row, idx) => {
+        if (idx === 0) {
+          return;
+        }
         let obj = {};
         keys.forEach((key, idx) => {
           obj[key] = row[idx];
@@ -101,17 +107,20 @@ function loadSrcData(path, callback) {
 
 function groupBy(data, key, val, condition) {
   if (condition === "AVG") {
-    let l = 60;
-    console.log(l);
+    let l = 180;
+    let total = 0;
     let tableData = data.reduce((acc, cur) => {
-      console.log(cur[val]);
       if (acc[cur[key]]) {
-        acc[cur[key]] += (Number(cur[val])/l);
+        acc[cur[key]] += Number(cur[val]);
       } else {
-        acc[cur[key]] = Number(cur[val])/l;
+        acc[cur[key]] = Number(cur[val]);
+        console.log(cur[key] + Number(cur[val]));
       }
       return acc;
     }, {});
+    for (let key in tableData) {
+      tableData[key] = Math.round(tableData[key]/180);
+    }
     console.log(tableData);
   }
 }
@@ -121,7 +130,7 @@ function groupBy(data, key, val, condition) {
  */
 function listMajors(auth) {
   const sheets = google.sheets({version: 'v4', auth});
-  loadSrcData('resources/', data => groupBy(data, 'label', 'Latency', 'AVG'));
+  loadSrcData('resources/', data => groupBy(data, 'label', 'elapsed', 'AVG'));
 
   // fs.readFile('resources/results.csv', (err, content) => {
   //   if (err) return console.log("Read data source fail, ", err);
