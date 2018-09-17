@@ -6,7 +6,9 @@
   "dependencies": {
     "googleapis": "^27.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "fast-xml-parser": "^3.12.5"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

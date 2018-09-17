@@ -1,0 +1,9 @@
+<table>
+  <tc dataSrc="./results.csv">
+    <aggregation>
+      <colName>elapsed</colName>
+      <type>AVG</type>
+      <groupBy>label</groupBy>
+    </aggregation>
+  </tc>
+</table>

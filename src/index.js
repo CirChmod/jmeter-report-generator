@@ -2,6 +2,7 @@ const fh = require('./filehandler');
 const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
+const xmlParser = require('fast-xml-parser');
 const Cell = require('./cell.js');
 const Row = require('./row.js');
 const Table = require('./table.js');
@@ -67,45 +68,59 @@ function getNewToken(oAuth2Client, callback) {
   });
 }
 
-function getTable(template, callback) {
-  let title = template["title"];
-  let firstRow = template["firstRowLabels"];
-  firstRow.unshift("");
-  let firstCol = template["firstColLabels"];
-  let emptyTable = [];
-  emptyTable.push([title]);
-  emptyTable.push(firstRow);
-  firstCol.forEach(col => {
-    emptyTable.push([col]);
-  });
-  return emptyTable;
-}
+var options = {
+    ignoreAttributes : false,
+    ignoreNameSpace : false,
+    allowBooleanAttributes : false,
+    parseNodeValue : true,
+    parseAttributeValue : true,
+    trimValues: true,
+    cdataTagName: "__cdata", //default is 'false'
+    cdataPositionChar: "\\c",
+    localeRange: "", //To support non english character in tag/attribute values.
+    parseTrueNumberOnly: false
+};
 
-function loadSrcData(path, callback) {
-  let data = [];
-  fs.readAllFiles(path, 'csv', files => {
-    files.forEach(file => {
-      let fileData = file.toString().split('\n');
-      fileData.pop();
-      let tmp = fileData.map(row => row.split(','));
-      console.log(tmp.length);
-      let keys = tmp[0];
-      tmp.forEach((row, idx) => {
-        if (idx === 0) {
-          return;
-        }
-        let obj = {};
-        keys.forEach((key, idx) => {
-          obj[key] = row[idx];
-        });
-        data.push(obj);
-      });
-    });
-    callback(data);
-  });
-}
+
+// function getTable(template, callback) {
+//   let title = template["title"];
+//   let firstRow = template["firstRowLabels"];
+//   firstRow.unshift("");
+//   let firstCol = template["firstColLabels"];
+//   let emptyTable = [];
+//   emptyTable.push([title]);
+//   emptyTable.push(firstRow);
+//   firstCol.forEach(col => {
+//     emptyTable.push([col]);
+//   });
+//   return emptyTable;
+// }
+
+// function loadSrcData(path, callback) {
+//   let data = [];
+//   fs.readAllFiles(path, 'csv', files => {
+//     files.forEach(file => {
+//       let fileData = file.toString().split('\n');
+//       fileData.pop();
+//       let tmp = fileData.map(row => row.split(','));
+//       let keys = tmp[0];
+//       tmp.forEach((row, idx) => {
+//         if (idx === 0) {
+//           return;
+//         }
+//         let obj = {};
+//         keys.forEach((key, idx) => {
+//           obj[key] = row[idx];
+//         });
+//         data.push(obj);
+//       });
+//     });
+//     callback(data);
+//   });
+// }
 
 function groupBy(data, key, val, condition) {
+  let tmpData = [];
   if (condition === "AVG") {
     let l = 180;
     let total = 0;
@@ -114,15 +129,18 @@ function groupBy(data, key, val, condition) {
         acc[cur[key]] += Number(cur[val]);
       } else {
         acc[cur[key]] = Number(cur[val]);
-        console.log(cur[key] + Number(cur[val]));
       }
       return acc;
     }, {});
     for (let key in tableData) {
       tableData[key] = Math.round(tableData[key]/180);
     }
-    console.log(tableData);
+    console.log(tmpData.push(tableData));
   }
+}
+
+function avg(key, opt_label) {
+
 }
 
 /**
@@ -130,7 +148,12 @@ function groupBy(data, key, val, condition) {
  */
 function listMajors(auth) {
   const sheets = google.sheets({version: 'v4', auth});
-  loadSrcData('resources/', data => groupBy(data, 'label', 'elapsed', 'AVG'));
+  fs.readFile("./resources/table-defination.xml", (err, data) => {
+    if (err) return console.log("Read xml fail for ", err);
+    let json = xmlParser.parse(data.toString(), options);
+    console.log(json['table']);
+  })
+  // loadSrcData('resources/', data => groupBy(data, 'label', 'elapsed', 'AVG'));
 
   // fs.readFile('resources/results.csv', (err, content) => {
   //   if (err) return console.log("Read data source fail, ", err);
