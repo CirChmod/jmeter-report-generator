@@ -3,18 +3,21 @@ const tableReslover = require('./table-tag-handler.js');
 // const chartResolver = require('./chart-tag-handler.js');
 
 
-function handler(segement, options) {
+module.exports = function handler({segement, options, callback}) {
   // TODO define the request json
-  let request = {};
+  let segementData = [];
   // TODO resolve tag
-  for (let tag in segement) {
-    if (!HANDLER_MAPPING[tag]) return console.log("Unknow tag, ", tag);
-    HANDLER_MAPPING[tag](segement[tag]);
+  for (let tagOrAttr in segement) {
+    if (!HANDLER_MAPPING[tagOrAttr]) return console.log("Unknow tag or attribute, ", tagOrAttr);
+    HANDLER_MAPPING[tagOrAttr](segement[tagOrAttr], piece => {
+      segementData.push(piece);
+    });
   }
+  callback(segementData);
 }
 
 HANDLER_MAPPING = {
-  table: tableReslover.handler,
-  text: textResolver.handler,
-  chartResolver: chartResolver.handler
+  "table": tableReslover.handler,
+  "text": textResolver.handler,
+  "chartResolver": chartResolver.handler
 }

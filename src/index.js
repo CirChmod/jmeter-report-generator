@@ -3,9 +3,7 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 const xmlParser = require('fast-xml-parser');
-const Cell = require('./cell.js');
-const Row = require('./row.js');
-const Table = require('./table.js');
+const segementHandler = require('./segement-handler.js')
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
@@ -96,28 +94,29 @@ var options = {
 //   return emptyTable;
 // }
 
-// function loadSrcData(path, callback) {
-//   let data = [];
-//   fs.readAllFiles(path, 'csv', files => {
-//     files.forEach(file => {
-//       let fileData = file.toString().split('\n');
-//       fileData.pop();
-//       let tmp = fileData.map(row => row.split(','));
-//       let keys = tmp[0];
-//       tmp.forEach((row, idx) => {
-//         if (idx === 0) {
-//           return;
-//         }
-//         let obj = {};
-//         keys.forEach((key, idx) => {
-//           obj[key] = row[idx];
-//         });
-//         data.push(obj);
-//       });
-//     });
-//     callback(data);
-//   });
-// }
+function loadSrcData(path, callback) {
+  let data = [];
+  fs.readAllFiles(path, 'csv', files => {
+    files.forEach(file => {
+      let fileData = file.toString().split('\n');
+      let idx = fileData.length-1;
+      while(fileData[idx] === "") fileData.pop(); 
+      let tmp = fileData.map(row => row.split(','));
+      let keys = tmp[0];
+      tmp.forEach((row, idx) => {
+        if (idx === 0) {
+          return;
+        }
+        let obj = {};
+        keys.forEach((key, idx) => {
+          obj[key] = row[idx];
+        });
+        data.push(obj);
+      });
+    });
+    callback(data);
+  });
+}
 
 function groupBy(data, key, val, condition) {
   let tmpData = [];
@@ -135,7 +134,7 @@ function groupBy(data, key, val, condition) {
     for (let key in tableData) {
       tableData[key] = Math.round(tableData[key]/180);
     }
-    console.log(tmpData.push(tableData));
+    console.log(tableData);
   }
 }
 
@@ -148,33 +147,23 @@ function avg(key, opt_label) {
  */
 function listMajors(auth) {
   const sheets = google.sheets({version: 'v4', auth});
+  let request = {};
+  request["spreadsheetId"] = "1ukefbciKahgaMj8bxYBhCyfdyjXff6Uh0O8smjxBypU";
+  request["resource"] = {
+    "valueInputOption": "USER_ENTERED",
+    "data": []
+  };
+  let data = [];
   fs.readFile("./resources/table-defination.xml", (err, data) => {
     if (err) return console.log("Read xml fail for ", err);
-    let json = xmlParser.parse(data.toString(), options);
-    console.log(json['table']);
-  })
-  // loadSrcData('resources/', data => groupBy(data, 'label', 'elapsed', 'AVG'));
-
-  // fs.readFile('resources/results.csv', (err, content) => {
-  //   if (err) return console.log("Read data source fail, ", err);
-  //   let srcData = [];
-  //   content.toString().split('\n').forEach(row => {
-  //     let rowData = row.split(',');
-  //     srcData.push(rowData);
-  //   });
-  //   fs.readFile('resources/table-property.json', (err, config) => {
-  //     let template = JSON.parse(config);
-  //     let table = getTable(template, undefined);
-  //     sheets.spreadsheets.values.update({
-  //       spreadsheetId: "1ukefbciKahgaMj8bxYBhCyfdyjXff6Uh0O8smjxBypU",
-  //       range: "Attendance",
-  //       valueInputOption: "RAW",
-  //       resource: {
-  //         "values": table
-  //       }
-  //     }, (err, res) => {
-  //       if (err) return console.log('The API returned an error: ' + err);
-  //     });
-  //   });
-  // });
+    let sheetDefination = xmlParser.parse(data.toString(), options);
+    segementHandler.handler(sheetDefination, segement => {
+      data = segement.slice();
+    });
+    request["resource"]["data"] = data;
+    sheets.spreadsheets.values.batchUpdate(request, (err, response) => {
+      if (err) return console.log("Error happen when update sheet, ", err);
+      console.log("Update successfully.", response);
+    }); 
+  });
 }
