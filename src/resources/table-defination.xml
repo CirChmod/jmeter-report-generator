@@ -1,11 +1,10 @@
 <segement>
-  <table title="Avg Response Time Per Request">
-    <tc dataSrc="./results.csv">
-      <aggregation>
-        <colName>elapsed</colName>
-        <type>AVG</type>
-        <groupBy>label</groupBy>
-      </aggregation>
+  <table title="Avg Response Time Per Request" range="A1">
+    <tc dataSrc="./resources/result1.csv" label="10">
+      <aggregation colName="elapsed" type="AVG" groupBy="label" />
+    </tc>
+    <tc dataSrc="./resources/result2.csv" label="20">
+      <aggregation colName="elapsed" type="AVG" groupBy="label" />
     </tc>
   </table>
 </segement>

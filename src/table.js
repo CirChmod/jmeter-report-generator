@@ -2,54 +2,84 @@ const Row = require('./row.js');
 
 module.exports = class Table {
 
-  constructor( {title = "Unknown", records = [], majorDimension = "ROWS"} ) {
+  constructor( {title = "Unknown", range = "", records = [], rowsLabels = [], columnsLabels = [], majorDimension = "ROWS"} ) {
     this.title_ = title;
-    this.rows_ = [];
-    this.cols_ = [];
-    if (majorDimension === "ROWS") {
-      this.rows_ = records.slice();
-    } else if (majorDimension === "COLUMN") {
-      this.cols_ = records.slice();
-    }
+    this.range_ = range;
+    this.rowLabels_ = rowsLabels.slice();
+    this.colLabels_ = columnsLabels.slice();
+    this.records_ = [];
+    records.forEach(record => {
+      this.records_.push(record.slice());
+    }, this);
+    this.majorDimension_ = majorDimension;
+  }
+
+  set majorDimension(md) {
+    this.majorDimension_ = md;
+  }
+
+  get majorDimension() {
+    return this.majorDimension_;
+  }
+
+  set title(t) {
+    this.title_ = t;
+  }
+
+  get title() {
+    return this.title_;
   }
 
   get data() {
     let data = [];
-    data.push[this.title_];
-    if (majorDimension === "ROWS") {
-      this.rows_.forEach(row => {
-        data.push(row.values)
-      });
-    } else if (majorDimension === "COLUMN") {
-      this.cols_.forEach(col => {
-        data.push(col.values);
-      });
+    data.push([this.title_]);
+    data.push(this.rowLabels_.slice());
+    let rowLength = this.rowLabels_.length;
+    let colLength = this.colLabels_.length;
+    // TODO refactor
+    if (this.majorDimension_ === "ROWS") {
+      console.log("Go here");
+      for (let i = 0; i < rowLength; i++) {
+        let tmp = [];
+        for (let j = 0; j < colLength; j++) {
+          tmp.push(this.records_[j][i]);
+        }
+        tmp.unshift(this.colLabels_[i]);
+        data.push(tmp);
+      }
+    } else if (this.majorDimension_ === "COLUMNS") {
+      for (let i = 0; i < colLength; i++) {
+        let tmp = [];
+        for (let j = 0; j < rowLength; j++) {
+          tmp.push(this.records_[j][i]);
+        }
+        tmp.unshift(this.colLabels_[i]);
+        data.push(tmp);
+      }
     }
+    console.log(this.records_);
     return data;
   }
 
-  appendRow(row) {
-    this.rows_.push(new Row(row));
-    let idx = 0;
-    this.cols_.forEach(col => {
-      col.addElement(row[idx++]);
-    });
+
+
+  get rowLabels() {
+    return this.rowLabels_;
   }
 
-  appendCol(col) {
-    this.cols_.push(new Col(col));
-    let idx = 0;
-    this.rows_.forEach(row => {
-      row.addElement(col[idx++]);
-    })
+  get colLabels() {
+    return this.colLabels_;
   }
 
-  get Row(index) {
-    return this.rows_[index].values;
+  set rowLabels(rl) {
+    this.rowLabels_ = rl.slice();
   }
 
-  get Col(index) {
-    return this.cols_[index].values;
+  set colLabels(cl) {
+    this.colLabels_ = cl.slice();
   }
 
+  append(record) {
+    this.records_.push(record.slice());
+  }
 }

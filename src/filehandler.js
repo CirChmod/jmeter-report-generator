@@ -13,9 +13,9 @@ fs.readdirAsync = function(path) {
 }
 
 
-fs.readFileAsync = function(path) {
+fs.readFileAsync = function(path, callback) {
   return new Promise((resolve, reject) => {
-    fs.readFile(path, {withFileTypes: true}, (err, file) => {
+    fs.readFile(path, (err, file) => {
       if (err) {
         reject(err);
       } else {
