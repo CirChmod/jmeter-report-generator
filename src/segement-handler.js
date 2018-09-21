@@ -22,17 +22,20 @@ const aggregationResolvers = {
   "COUNT": countResolver
 }
 
-function handler(xmlDefination, options, callback) {
+module.exports = function handler(xmlDefination, options, callback) {
   // TODO define the request json
-  let segementData = [];
+  let segementData = {};
   let segement = xmlDefination["segement"];
   // TODO resolve tag
   for (let tagOrAttr in segement) {
     if (!tagHandlers[tagOrAttr]) return console.log("Unknown tag or attribute, ", tagOrAttr);
     tagHandlers[tagOrAttr](segement[tagOrAttr], data => {
-      console.log(data);
+      segementData["values"] = data;
     });
   }
+  segementData["range"] = "A1";
+  segementData["majorDimension"] = "ROWS";
+
   callback(segementData);
 }
 
@@ -53,7 +56,6 @@ function tableHandler(jsonPiece, callback) {
         if (majorDimension === "ROWS") {
           columnsLabels.push(rowOrCol["label"]);
         } else if (majorDimension === "COLUMNS") {
-          console.log(rowOrCol["label"]);
           rowsLabels.push(rowOrCol["label"]);
         }
         let result = rowOrCol["result"];
@@ -190,24 +192,13 @@ function rangeAppender(range, callback) {
 
 
 /* ====================== Test ======================== */
-const options = {
-    ignoreAttributes : false,
-    ignoreNameSpace : false,
-    allowBooleanAttributes : false,
-    parseNodeValue : true,
-    parseAttributeValue : true,
-    trimValues: true,
-    cdataTagName: "__cdata", //default is 'false'
-    cdataPositionChar: "\\c",
-    localeRange: "", //To support non english character in tag/attribute values.
-    parseTrueNumberOnly: false
-};
 
-const xml2json = require('fast-xml-parser');
-(function test() {
-  fs.readFile('./resources/table-defination.xml', (err, content) => {
-    let json = xml2json.parse(content.toString(), options);
-    handler(json, "", () => {});
-  });
-})();
+
+// const xml2json = require('fast-xml-parser');
+// (function test() {
+//   fs.readFile('./resources/table-defination.xml', (err, content) => {
+//     let json = xml2json.parse(content.toString(), options);
+//     handler(json, "", () => {});
+//   });
+// })();
 /* ==================================================== */

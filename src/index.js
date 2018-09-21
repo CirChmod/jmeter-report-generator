@@ -9,6 +9,19 @@ const segementHandler = require('./segement-handler.js')
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = '../.credentials/token.json';
 
+const OPTIONS = {
+    ignoreAttributes : false,
+    ignoreNameSpace : false,
+    allowBooleanAttributes : false,
+    parseNodeValue : true,
+    parseAttributeValue : true,
+    trimValues: true,
+    cdataTagName: "__cdata", //default is 'false'
+    cdataPositionChar: "\\c",
+    localeRange: "", //To support non english character in tag/attribute values.
+    parseTrueNumberOnly: false
+};
+
 // Load client secrets from a local file.
 fs.readFile('../.credentials/credentials.json', (err, content) => {
   if (err) return console.log('Error loading client secret file:', err);
@@ -80,68 +93,6 @@ var options = {
 };
 
 
-// function getTable(template, callback) {
-//   let title = template["title"];
-//   let firstRow = template["firstRowLabels"];
-//   firstRow.unshift("");
-//   let firstCol = template["firstColLabels"];
-//   let emptyTable = [];
-//   emptyTable.push([title]);
-//   emptyTable.push(firstRow);
-//   firstCol.forEach(col => {
-//     emptyTable.push([col]);
-//   });
-//   return emptyTable;
-// }
-
-function loadSrcData(path, callback) {
-  let data = [];
-  fs.readAllFiles(path, 'csv', files => {
-    files.forEach(file => {
-      let fileData = file.toString().split('\n');
-      let idx = fileData.length-1;
-      while(fileData[idx] === "") fileData.pop(); 
-      let tmp = fileData.map(row => row.split(','));
-      let keys = tmp[0];
-      tmp.forEach((row, idx) => {
-        if (idx === 0) {
-          return;
-        }
-        let obj = {};
-        keys.forEach((key, idx) => {
-          obj[key] = row[idx];
-        });
-        data.push(obj);
-      });
-    });
-    callback(data);
-  });
-}
-
-function groupBy(data, key, val, condition) {
-  let tmpData = [];
-  if (condition === "AVG") {
-    let l = 180;
-    let total = 0;
-    let tableData = data.reduce((acc, cur) => {
-      if (acc[cur[key]]) {
-        acc[cur[key]] += Number(cur[val]);
-      } else {
-        acc[cur[key]] = Number(cur[val]);
-      }
-      return acc;
-    }, {});
-    for (let key in tableData) {
-      tableData[key] = Math.round(tableData[key]/180);
-    }
-    console.log(tableData);
-  }
-}
-
-function avg(key, opt_label) {
-
-}
-
 /**
  * 
  */
@@ -153,17 +104,17 @@ function listMajors(auth) {
     "valueInputOption": "USER_ENTERED",
     "data": []
   };
-  let data = [];
+  let srcData = [];
   fs.readFile("./resources/table-defination.xml", (err, data) => {
     if (err) return console.log("Read xml fail for ", err);
     let sheetDefination = xmlParser.parse(data.toString(), options);
-    segementHandler.handler(sheetDefination, segement => {
-      data = segement.slice();
+    segementHandler(sheetDefination, "", segement => {
+      srcData.push(segement);
+      console.log(segement);
     });
-    request["resource"]["data"] = data;
+    request["resource"]["data"] = srcData;
     sheets.spreadsheets.values.batchUpdate(request, (err, response) => {
       if (err) return console.log("Error happen when update sheet, ", err);
-      console.log("Update successfully.", response);
     }); 
   });
 }

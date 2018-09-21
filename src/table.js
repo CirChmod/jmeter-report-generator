@@ -33,15 +33,16 @@ module.exports = class Table {
   get data() {
     let data = [];
     data.push([this.title_]);
-    data.push(this.rowLabels_.slice());
+    let rowLabels = this.rowLabels_.slice();
+    rowLabels.unshift("");
+    data.push(rowLabels);
     let rowLength = this.rowLabels_.length;
     let colLength = this.colLabels_.length;
     // TODO refactor
     if (this.majorDimension_ === "ROWS") {
-      console.log("Go here");
-      for (let i = 0; i < rowLength; i++) {
+      for (let i = 0; i < colLength; i++) {
         let tmp = [];
-        for (let j = 0; j < colLength; j++) {
+        for (let j = 0; j < rowLength; j++) {
           tmp.push(this.records_[j][i]);
         }
         tmp.unshift(this.colLabels_[i]);
@@ -51,13 +52,12 @@ module.exports = class Table {
       for (let i = 0; i < colLength; i++) {
         let tmp = [];
         for (let j = 0; j < rowLength; j++) {
-          tmp.push(this.records_[j][i]);
+          tmp.push(this.records_[i][j]);
         }
         tmp.unshift(this.colLabels_[i]);
         data.push(tmp);
       }
     }
-    console.log(this.records_);
     return data;
   }
 
